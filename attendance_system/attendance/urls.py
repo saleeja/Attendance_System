@@ -9,4 +9,5 @@ urlpatterns = [
     path('workers/', WorkerCreateView.as_view(), name='worker-create'),
     path('workers/<int:pk>/', WorkerDetailView.as_view(), name='worker-detail'),
     path('workers/list/', WorkerList.as_view(), name='worker-list'),
+    path('export/attendance/', ExportWorkersView.as_view(), name='export-to-excel'),
 ]

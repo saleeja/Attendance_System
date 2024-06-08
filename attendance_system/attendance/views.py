@@ -2,6 +2,9 @@ from rest_framework import generics
 from .models import User, Worker
 from .serializers import UserSerializer, WorkerSerializer
 import datetime
+import openpyxl
+from django.http import HttpResponse
+from rest_framework.views import APIView
 
 class UserListCreateView(generics.ListCreateAPIView):
     serializer_class = UserSerializer
@@ -42,3 +45,31 @@ class WorkerList(generics.ListAPIView):
                 attendance_date__month=month_date.month
             )
         return queryset
+
+
+class ExportWorkersView(APIView):
+    
+    def get(self, request):
+        workers = Worker.objects.all()
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+
+        headers = ['First Name', 'Attendance Status', 'Attendance Date']
+        ws.append(headers)
+
+        for worker in workers:
+            row = [
+                worker.user.first_name,
+                worker.get_attendance_status_display(),  
+                worker.attendance_date.strftime('%Y-%m-%d'),
+               
+            ]
+            ws.append(row)
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=Workers_Attendance.xlsx'
+
+        wb.save(response)
+
+        return response
